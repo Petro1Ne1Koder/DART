@@ -23,63 +23,56 @@ class FuelCalculatorScreen extends StatefulWidget {
 }
 
 class _FuelCalculatorScreenState extends State<FuelCalculatorScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController _hController = TextEditingController();
-  final TextEditingController _cController = TextEditingController();
-  final TextEditingController _sController = TextEditingController();
-  final TextEditingController _nController = TextEditingController();
-  final TextEditingController _oController = TextEditingController();
-  final TextEditingController _wController = TextEditingController();
-  final TextEditingController _aController = TextEditingController();
-  final TextEditingController _vController = TextEditingController();
-  final TextEditingController _qDafController = TextEditingController();
+  final Map<String, TextEditingController> controllers = {
+    'H': TextEditingController(),
+    'C': TextEditingController(),
+    'S': TextEditingController(),
+    'N': TextEditingController(),
+    'O': TextEditingController(),
+    'W': TextEditingController(),
+    'A': TextEditingController(),
+    'V': TextEditingController(),
+    'Qdaf': TextEditingController(),
+  };
 
-  double? dryMass, combustibleMass, qph, qdh, qdafh;
-  double? fuelCarbon, fuelHydrogen, fuelSulfur, fuelOxygen, fuelVanadium, qWork;
-
+  double? dryMass, combustibleMass, qph, qdh, qdafh, qWork;
   int selectedCalculator = 0;
 
   void calculateTask1() {
-    double h = double.tryParse(_hController.text) ?? 0;
-    double c = double.tryParse(_cController.text) ?? 0;
-    double s = double.tryParse(_sController.text) ?? 0;
-    double n = double.tryParse(_nController.text) ?? 0;
-    double o = double.tryParse(_oController.text) ?? 0;
-    double w = double.tryParse(_wController.text) ?? 0;
-    double a = double.tryParse(_aController.text) ?? 0;
+    setState(() {
+      double h = double.tryParse(controllers['H']!.text) ?? 0;
+      double c = double.tryParse(controllers['C']!.text) ?? 0;
+      double s = double.tryParse(controllers['S']!.text) ?? 0;
+      double n = double.tryParse(controllers['N']!.text) ?? 0;
+      double o = double.tryParse(controllers['O']!.text) ?? 0;
+      double w = double.tryParse(controllers['W']!.text) ?? 0;
+      double a = double.tryParse(controllers['A']!.text) ?? 0;
 
-    double krs = 100 / (100 - w);
-    double krg = 100 / (100 - w - a);
+      double krs = 100 / (100 - w);
+      double krg = 100 / (100 - w - a);
 
-    dryMass = krs;
-    combustibleMass = krg;
+      dryMass = krs;
+      combustibleMass = krg;
 
-    qph = (339 * c + 1030 * h - 108.8 * (o - s) - 25 * w) / 1000;
-    qdh = qph! * krs;
-    qdafh = qph! * krg;
-
-    setState(() {});
+      qph = (339 * c + 1030 * h - 108.8 * (o - s) - 25 * w) / 1000;
+      qdh = qph! * krs;
+      qdafh = qph! * krg;
+    });
   }
 
   void calculateTask2() {
-    double cG = double.tryParse(_cController.text) ?? 0;
-    double hG = double.tryParse(_hController.text) ?? 0;
-    double sG = double.tryParse(_sController.text) ?? 0;
-    double oG = double.tryParse(_oController.text) ?? 0;
-    double vG = double.tryParse(_vController.text) ?? 0;
-    double wR = double.tryParse(_wController.text) ?? 0;
-    double aD = double.tryParse(_aController.text) ?? 0;
-    double qDaf = double.tryParse(_qDafController.text) ?? 0;
+    setState(() {
+      double c = double.tryParse(controllers['C']!.text) ?? 0;
+      double h = double.tryParse(controllers['H']!.text) ?? 0;
+      double s = double.tryParse(controllers['S']!.text) ?? 0;
+      double o = double.tryParse(controllers['O']!.text) ?? 0;
+      double v = double.tryParse(controllers['V']!.text) ?? 0;
+      double w = double.tryParse(controllers['W']!.text) ?? 0;
+      double a = double.tryParse(controllers['A']!.text) ?? 0;
+      double qDaf = double.tryParse(controllers['Qdaf']!.text) ?? 0;
 
-    fuelCarbon = cG * (100 - wR - aD) / 100;
-    fuelHydrogen = hG * (100 - wR - aD) / 100;
-    fuelSulfur = sG * (100 - wR - aD) / 100;
-    fuelOxygen = oG * (100 - wR - aD) / 100;
-    fuelVanadium = vG * (100 - wR) / 100;
-
-    qWork = qDaf * (100 - wR - aD) / 100 - 0.025 * wR;
-
-    setState(() {});
+      qWork = qDaf * (100 - w - a) / 100 - 0.025 * w;
+    });
   }
 
   @override
@@ -91,6 +84,7 @@ class _FuelCalculatorScreenState extends State<FuelCalculatorScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ToggleButtons(
               children: [Text('Task 1'), Text('Task 2')],
@@ -101,25 +95,29 @@ class _FuelCalculatorScreenState extends State<FuelCalculatorScreen> {
                 });
               },
             ),
+            SizedBox(height: 16),
+            ...(selectedCalculator == 0
+                ? ['H', 'C', 'S', 'N', 'O', 'W', 'A']
+                : ['C', 'H', 'S', 'O', 'V', 'W', 'A', 'Qdaf'])
+                .map((key) => TextFormField(
+                      controller: controllers[key],
+                      decoration: InputDecoration(labelText: '$key (%)'),
+                    ))
+                .toList(),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: selectedCalculator == 0 ? calculateTask1 : calculateTask2,
+              child: Text('Calculate'),
+            ),
+            SizedBox(height: 16),
             if (selectedCalculator == 0) ...[
-              TextFormField(controller: _hController, decoration: InputDecoration(labelText: 'H (%)')),
-              TextFormField(controller: _cController, decoration: InputDecoration(labelText: 'C (%)')),
-              TextFormField(controller: _sController, decoration: InputDecoration(labelText: 'S (%)')),
-              TextFormField(controller: _nController, decoration: InputDecoration(labelText: 'N (%)')),
-              TextFormField(controller: _oController, decoration: InputDecoration(labelText: 'O (%)')),
-              TextFormField(controller: _wController, decoration: InputDecoration(labelText: 'W (%)')),
-              TextFormField(controller: _aController, decoration: InputDecoration(labelText: 'A (%)')),
-              ElevatedButton(onPressed: calculateTask1, child: Text('Calculate')),
+              Text('Dry Mass Factor: ${dryMass?.toStringAsFixed(2) ?? 'N/A'}'),
+              Text('Combustible Mass Factor: ${combustibleMass?.toStringAsFixed(2) ?? 'N/A'}'),
+              Text('QpH: ${qph?.toStringAsFixed(2) ?? 'N/A'} MJ/kg'),
+              Text('QdH: ${qdh?.toStringAsFixed(2) ?? 'N/A'} MJ/kg'),
+              Text('QdafH: ${qdafh?.toStringAsFixed(2) ?? 'N/A'} MJ/kg'),
             ] else ...[
-              TextFormField(controller: _cController, decoration: InputDecoration(labelText: 'C (%)')),
-              TextFormField(controller: _hController, decoration: InputDecoration(labelText: 'H (%)')),
-              TextFormField(controller: _sController, decoration: InputDecoration(labelText: 'S (%)')),
-              TextFormField(controller: _oController, decoration: InputDecoration(labelText: 'O (%)')),
-              TextFormField(controller: _vController, decoration: InputDecoration(labelText: 'V (mg/kg)')),
-              TextFormField(controller: _wController, decoration: InputDecoration(labelText: 'W (%)')),
-              TextFormField(controller: _aController, decoration: InputDecoration(labelText: 'A (%)')),
-              TextFormField(controller: _qDafController, decoration: InputDecoration(labelText: 'Qdaf (MJ/kg)')),
-              ElevatedButton(onPressed: calculateTask2, child: Text('Calculate')),
+              Text('Q Work: ${qW ork?.toStringAsFixed(2) ?? 'N/A'} MJ/kg'),
             ],
           ],
         ),
